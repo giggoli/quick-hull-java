@@ -64,12 +64,12 @@ jobs:
 
       - name: Create JAR
         run: |
-          jar --create --file app.jar --main-class Main -C out .
+          jar --create --file out/app.jar --main-class Main -C out .
 
       - name: Create Windows EXE
         run: |
           jpackage ^
-            --input outs ^
+            --input out ^
             --name QuickHull ^
             --main-jar app.jar ^
             --type exe ^
@@ -103,7 +103,7 @@ jobs:
 
       - name: Create JAR
         run: |
-          jar --create --file app.jar --main-class Main -C out .
+          jar --create --file out/app.jar --main-class Main -C out .
 
       - name: Create Linux App Image
         run: |
@@ -142,7 +142,7 @@ jobs:
 
       - name: Create JAR
         run: |
-          jar --create --file app.jar --main-class Main -C out .
+          jar --create --file out/app.jar --main-class Main -C out .
 
       - name: Create macOS App
         run: |
