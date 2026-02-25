@@ -69,7 +69,7 @@ jobs:
       - name: Create Windows EXE
         run: |
           jpackage ^
-            --input . ^
+            --input outs ^
             --name QuickHull ^
             --main-jar app.jar ^
             --type exe ^
@@ -82,7 +82,7 @@ jobs:
 
 
   # ------------------------------------
-  # 3️⃣ Linux Build
+  # Linux Build
   # ------------------------------------
   build-linux:
     if: github.event.pull_request.merged == true
@@ -108,7 +108,7 @@ jobs:
       - name: Create Linux App Image
         run: |
           jpackage \
-            --input . \
+            --input out \
             --name QuickHull \
             --main-jar app.jar \
             --type app-image \
@@ -147,7 +147,7 @@ jobs:
       - name: Create macOS App
         run: |
           jpackage \
-            --input . \
+            --input out \
             --name QuickHull \
             --main-jar app.jar \
             --type app-image \
