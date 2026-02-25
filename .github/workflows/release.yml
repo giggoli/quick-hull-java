@@ -38,7 +38,7 @@ jobs:
             doc/slides/slides.pdf
 
   # ------------------------------------
-  # Windows Build (Standalone Folder)
+  # Windows Build (Standalone ZIP)
   # ------------------------------------
   build-windows:
     if: github.event.pull_request.merged == true
@@ -75,7 +75,7 @@ jobs:
           path: dist/QuickHull-Windows.zip
 
   # ------------------------------------
-  # macOS Build (Intel Mac)
+  # macOS Build (Intel Compatibility)
   # ------------------------------------
   build-macos:
     if: github.event.pull_request.merged == true
@@ -138,41 +138,37 @@ jobs:
           path: dist/*
 
   # ------------------------------------
-  # Release
+  # Release erstellen
   # ------------------------------------
   release:
     if: github.event.pull_request.merged == true
     needs: [latex, build-windows, build-linux, build-macos]
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      # Alle Artefakte in einen gemeinsamen Ordner laden
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: all-artifacts
 
-      # Struktur für den Release-Step vorbereiten (flach klopfen)
       - name: Prepare Release Files
         run: |
           mkdir -p release-files
-          # Kopiere PDFs
-          cp all-artifacts/pdfs/*.pdf release-files/ || true
-          # Kopiere Windows ZIP
-          cp all-artifacts/windows-build/*.zip release-files/ || true
-          # Kopiere macOS DMG
-          cp all-artifacts/macos-build/*.dmg release-files/ || true
-          # Kopiere Linux Build (da dies ein Ordner ist, zippen wir ihn hier kurz)
-          cd all-artifacts/linux-build && zip -r ../../release-files/QuickHull-Linux.zip . && cd ../..
-          
-          ls -R release-files # Debug-Anzeige im Log
+          find all-artifacts/pdfs -name "*.pdf" -exec cp {} release-files/ \;
+          find all-artifacts/windows-build -name "*.zip" -exec cp {} release-files/ \;
+          find all-artifacts/macos-build -name "*.dmg" -exec cp {} release-files/ \;
 
-      # Release erstellen
-      - name: Create Release
+          if [ -d "all-artifacts/linux-build/QuickHull" ]; then
+            cd all-artifacts/linux-build/QuickHull && zip -r ../../../release-files/QuickHull-Linux.zip . && cd ../../..
+          elif [ -d "all-artifacts/linux-build" ]; then
+            cd all-artifacts/linux-build && zip -r ../../release-files/QuickHull-Linux.zip . && cd ../..
+          fi
+
+          echo "Folgende Dateien werden dem Release hinzugefügt:"
+          ls -lh release-files/
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: release-${{ github.run_number }}
-          name: Release ${{ github.run_number }}
+          tag_name: release-1.0.0
+          name: Release 1.0.0
           files: release-files/*
