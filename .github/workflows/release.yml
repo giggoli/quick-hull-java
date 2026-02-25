@@ -145,39 +145,34 @@ jobs:
     needs: [latex, build-windows, build-linux, build-macos]
     runs-on: ubuntu-latest
     steps:
-      # Artefakte herunterladen
-      - name: Download PDFs
-        uses: actions/download-artifact@v4
-        with:
-          name: pdfs
-          path: artifacts/pdfs
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Download Windows Build
+      # Alle Artefakte in einen gemeinsamen Ordner laden
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          name: windows-build
-          path: artifacts/windows
+          path: all-artifacts
 
-      - name: Download macOS Build
-        uses: actions/download-artifact@v4
-        with:
-          name: macos-build
-          path: artifacts/macos
-
-      - name: Download Linux Build
-        uses: actions/download-artifact@v4
-        with:
-          name: linux-build
-          path: artifacts/linux
+      # Struktur für den Release-Step vorbereiten (flach klopfen)
+      - name: Prepare Release Files
+        run: |
+          mkdir -p release-files
+          # Kopiere PDFs
+          cp all-artifacts/pdfs/*.pdf release-files/ || true
+          # Kopiere Windows ZIP
+          cp all-artifacts/windows-build/*.zip release-files/ || true
+          # Kopiere macOS DMG
+          cp all-artifacts/macos-build/*.dmg release-files/ || true
+          # Kopiere Linux Build (da dies ein Ordner ist, zippen wir ihn hier kurz)
+          cd all-artifacts/linux-build && zip -r ../../release-files/QuickHull-Linux.zip . && cd ../..
+          
+          ls -R release-files # Debug-Anzeige im Log
 
       # Release erstellen
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: release-v1
-          name: Release v1
-          files: |
-            artifacts/pdfs/*
-            artifacts/windows/*
-            artifacts/macos/*
-            artifacts/linux/*
+          tag_name: release-${{ github.run_number }}
+          name: Release ${{ github.run_number }}
+          files: release-files/*
