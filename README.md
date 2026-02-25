@@ -1,12 +1,14 @@
-Here’s a cleaned-up and improved version of your README:
+# QuickHull & Gaußsche Trapezformel
+Dieses Repository enthält die Implementierung des QuickHull-Algorithmus und der Gaußschen Trapezformel sowie die dazugehörige Dokumentation.
 
----
+## 📂 Projektstruktur
+src/: Enthält den Quellcode der Implementierungen.
 
-# Quick Hull
+docs/text/: Schriftliche Ausarbeitung (Theorie & Analyse).
 
-This repository contains a Java implementation of the **QuickHull** algorithm for solving the convex hull problem.
+docs/slides/: Präsentationsfolien.
 
-## About QuickHull
+## 📦 Releases
+Die fertig kompilierten PDFs (Ausarbeitung & Präsentation) sowie die stabilen Implementierungen (Mac, Linux und Windows) findest du direkt in den [Releases](https://github.com/giggoli/quick-hull-java/releases/tag/release-1.0.0)
 
-The QuickHull algorithm is a divide-and-conquer method for computing the convex hull of a set of points in a plane. It works similarly to QuickSort by recursively finding extreme points and partitioning the remaining set.
-
+> Bei der ausführung auf Linux sollte zuerst überprüft werden ob die richtigen Rechte gesetzt wurden. Falls nicht einfach mit `sudo chmod +x QuickHull` setzen.
