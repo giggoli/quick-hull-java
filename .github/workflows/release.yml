@@ -68,12 +68,7 @@ jobs:
 
       - name: Create Windows EXE
         run: |
-          jpackage ^
-            --input out ^
-            --name QuickHull ^
-            --main-jar app.jar ^
-            --type exe ^
-            --dest dist
+          jpackage --input out --name QuickHull --main-jar app.jar --type exe --dest dist
 
       - uses: actions/upload-artifact@v4
         with:
@@ -144,19 +139,19 @@ jobs:
         run: |
           jar --create --file out/app.jar --main-class Main -C out .
 
-      - name: Create macOS App
+      - name: Create macOS DMG
         run: |
           jpackage \
             --input out \
             --name QuickHull \
             --main-jar app.jar \
-            --type app-image \
+            --type dmg \
             --dest dist
 
       - uses: actions/upload-artifact@v4
         with:
           name: macos-build
-          path: dist/*
+          path: dist/*.dmg
 
 
   # ------------------------------------
