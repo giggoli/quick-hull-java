@@ -1,0 +1,54 @@
+\documentclass[11pt, a4paper]{article}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% PACKAGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[utf8]{inputenc}
+\usepackage[ngerman]{babel} 
+\usepackage[style=ieee]{biblatex} 
+\usepackage[a4paper, margin=2.5cm]{geometry} 
+\usepackage{amsmath, amssymb, amsthm} 
+\usepackage[dvipsnames]{xcolor}
+\usepackage{hyperref}
+\usepackage{csquotes}
+\usepackage[T1]{fontenc}
+\usepackage[scaled]{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{parskip} 
+\usepackage{titlesec}
+\usepackage{graphicx}
+
+
+\usepackage[ruled, vlined, linesnumbered]{algorithm2e} 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% FARBEN & STIL %%%%%%%%%%%%%%%%%%%%%%%%%%%
+\definecolor{maincolor}{HTML}{1E90FF}
+
+\titleformat{\section}
+  {\large\bfseries\color{maincolor}}{\thesection}{1em}{}
+\titleformat{\subsection}
+  {\normalsize\bfseries\color{maincolor}}{\thesubsection}{1em}{}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=maincolor,
+    citecolor=maincolor,
+    urlcolor=maincolor
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TITEL-INFOS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{GINF Ausarbeitung QuickHull und Gaußsche Trapetzformel}
+\author{Oliver Hahn 23841924	}
+
+
+\addbibresource{bib.bib}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% DOCUMENT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+\maketitle 
+
+\input{quickhull.tex}
+\newpage 
+\input{shoelace.tex}
+
+\printbibliography
+\end{document}

@@ -1,0 +1,156 @@
+\section{Quick Hull}
+\subsection{Problem und Aufgabe}
+Gegeben ist eine endliche Punktmenge $S = \{p_1, \dots , p_n\}$ in einer Ebene, wobei jeder Punkt $p_i = (x_i, y_i)$ durch reelle Koordinaten beschrieben werden kann. Die zentrale Aufgabe besteht darin, die konvexe Hülle $CH(S)$ zu bestimmen. Darunter versteht man das kleinste Polygon (bzw. die kleinste Menge), welches alle Punkte aus $S$ enthält. Anschaulich lässt sich das mit einem Gummiband erklären \cite{preparata1985computational}. Würde man ein Gummiband um alle Punkte legen, so würde das Band nur die Punkte Berühren, die die Eckpunkte der konvexen Hülle bilden.
+Formal ist $CH(S)$ die Menge aller konvexen Kombinationen der Punkte aus $S$. In der Praxis interessiert man sich jedoch oftmals nicht für die gesamte gefüllte Fläche, sondern für den Rand als Polygonzug, also für die Menge der Hüllpunkten in einer zyklischen Reihenfolge. Die zyklische Reihenfolge wird entweder im Uhrzeigersinn oder gegen den Uhrzeigersinn gewählt. In \autoref{fig:bsp_hull} ist eine solche konvexe Hülle zu sehen.
+\begin{figure}[hbt]
+  \centering
+  \includegraphics[width=0.7\linewidth]{../img/hullExample.png}
+  \caption{Beispiel einer konvexen Hülle}
+  \label{fig:bsp_hull}
+\end{figure}
+
+
+\subsection{Algorithmische Idee}
+Der QuickHull-Algorithmus folgt einem Divide-and-Conquer-Ansatz und ist konzeptionell mit QuickSort verwandt und wurde von Barber et al. beschrieben \cite{barber1996quickhull}. Zunächst werden die Punkte mit minimaler und maximaler x-Koordinate bestimmt. Diese beiden Punkte liegen garantiert auf der konvexen Hülle und definieren eine Gerade, welche die Punktmenge in zwei Halbebenen teilt. Für jede Halbebene wird rekursiv der Punkt gesucht, der den größten Abstand zur aktuellen Geraden besitzt. Dieser Punkt ist ebenfalls Bestandteil der konvexen Hülle. Die Punktmenge wird anschließend erneut in Teilmengen zerlegt, und der Prozess wird rekursiv fortgesetzt, bis keine Punkte mehr außerhalb der betrachteten Strecken liegen.
+
+\subsection{Funktionsweise}
+Konzeptionell ist QuickHull mit QuickSort verwandt: Durch die Bestimmung von Extrempunkten wird das Problem in zwei unabhängige Teilprobleme zerlegt, diese werden dann rekursiv gelöst.
+Ausgangspunkt des Algorithmus ist die Beobachtung, dass Punkte mit minimaler bzw. maximaler x-Koordinate notwendigerweise auf der konvexen Hülle liegen. Mit 
+\begin{equation*}
+	p_{min}=\operatorname*{arg min}_{p \in S} x(p), \quad
+	p_{max}=\operatorname*{arg max}_{p \in S} x(p)
+\end{equation*}
+
+kann keiner dieser Punkte im Inneren von $CH(S)$ liegen und somit sind beide dieser Punkte Hüllpunkte. Die Gerade durch $p_{min}$ und $p_{max}$ teilt die gegebene Punktmenge in zwei Halbebenen, die getrennt voneinander behandelt werden.
+
+In diesen getrennten Halbebenen wird das Kreuzprodukt als zentrales Werkzeug verwendet.
+\begin{equation*}
+	\text{cross}(a, b, c) = (b_x - a_x)(c_y - a_y) - (b_y - a_y)(c_x - a_x)
+\end{equation*}
+Das Ergebnis dieses Kreuzproduktes $ab \times ac$ beschreibt die Orientierung der Punkte $a, b, c$. Besser gesagt das Vorzeichen des Ergebnisses, denn ist dieses positiv, so liegt $c$ links der gerichteten geraden $a \rightarrow b$. Ist das Vorzeichen negativ liegt $c$ rechts der Geraden und ist das Ergebnis Null, sind die Punkte kollinear.
+Gleichzeitig ist der Betrag proportional zur Fläche des Dreiecks der Punkte $a, b, c$ und somit proportional zum senkrechten Abstand von $c$ zur Geraden von $a$ nach $b$. Somit gilt für die Distanz $d$:
+\begin{equation*}
+	d(a,b,c) = \frac{|\text{cross}(a,b,c)|}{||b-a||}
+\end{equation*}
+Da $||b-a||$ für eine feste Kante konstant ist genügt es, den Punkt mit dem maximalen $|\text{cross}(a,b,c)|$ zu finden, um die maximale Distanz zu bestimmen.
+
+
+Für eine gegebene gerichtete Kante $a \rightarrow b$ betrachtet man nun alle Punkte
+\begin{equation*}
+	L_{ab} =
+	\left\{
+		p \in S \mid \text{cross}(a,b,p) > 0
+	\right\},
+\end{equation*}
+also diejenigen, die links der Kante liegen. Ist diese Menge leer, so bildet die Strecke $ab$ bereits einen Randabschnitt der Hülle. Andernfalls wählt man den Punkt
+\begin{equation*}
+	P =
+	\operatorname*{arg\,max}_{p \in L_{ab}}
+	\text{cross}(a,b,p).
+\end{equation*}
+
+\begin{figure}[hbt]
+  \centering
+  \includegraphics[width=0.7\linewidth]{../img/newHullPoint.png}
+  \caption{Selektion des fernsten Punktes $P$ relativ zur Kante $ab$, der schattierte Bereich zeigt das Dreieck $aPb$}
+  \label{fig:bsp_new_point}
+\end{figure}
+
+\autoref{fig:bsp_new_point} zeigt diesen Schritt. Die gestrichelte Linie stellt die aktuelle Kante $a \rightarrow b$ dar. Unter allen Punkten links dieser Kante wird der Punkt $P$ gewählt, der den maximalen orientierten Flächenwert besitzt. Das entstehende Dreieck $aPb$ eliminiert alle Punkte in seinem Inneren aus der weiteren Betrachtung. 
+
+Geometrisch maximiert dieser Punkt die Fläche des Dreiecks $abP$ und besitzt somit den größten Abstand zur Geraden $ab$ auf dieser Seite.
+Angenommen, $P$ läge im Inneren von $CH(S)$. Dann wäre er als konvexe Kombination von Randpunkten darstellbar. Eine konvexe Kombination kann jedoch keinen größeren Abstand zu einer festen Geraden besitzen als ihre Extrempunkte. Da $P$ den maximalen Abstand realisiert, kann er nicht durch andere Punkte „überdeckt“ werden. Also ist $P$ notwendigerweise ein Hüllpunkt.
+
+Das ursprüngliche Problem zerfällt nun in zwei unabhängige Teilprobleme: Bestimme die Hüllpunkte links von $a \rightarrow P$ sowie diejenigen links von $P \rightarrow b$. Formal betrachtet man die Mengen
+\begin{equation*}
+	L_{aP} =\left\{p \in L_{ab} \mid \text{cross}(a,P,p) > 0\right\}, \quad
+	L_{Pb} =\left\{p \in L_{ab} \mid \text{cross}(P,b,p) > 0\right\}
+\end{equation*}
+
+Die Rekursion setzt sich mit diesen kleineren Punktmengen fort. Sie endet jeweils dann, wenn keine Punkte mehr links einer betrachteten Kante liegen. Diese Kante ist dann Teil des Randes.
+
+Durch Anwendung dieses Verfahrens auf beide Seiten der Anfangsgeraden durhc $p_{min}$ und  $p_{max}$ erhält man sämtliche Hüllpunkte. Da jeder Rekursionsschritt mindestens einen Punkt als Hüllpunkt identifiziert und innere Punkte systematisch eliminiert, ist die Terminierung garantiert.
+
+Bezüglich der Laufzeit ergibt sich im Durchschnitt eine Komplexität von $\mathcal{O}(n \log n)$, während im ungünstigsten Fall, bei speziellen Punktverteilungen, bei denen in jedem Schritt nur ein Punkt eliminiert wird $\mathcal{O}(n^2)$ auftreten kann \cite{barber1996quickhull}.
+
+
+
+\subsection{Pseudocode}
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\SetAlgoLined
+
+\caption{QuickHull($S$)}
+
+\KwData{Punktmenge $S = \{p_1,\dots,p_n\} \subset \mathbb{R}^2$}
+\KwResult{Liste $H$ der Eckpunkte von $CH(S)$ in CCW-Reihenfolge}
+
+\BlankLine
+
+\If{$|S| < 3$}{
+    \Return $S$\;
+}
+
+$A \leftarrow \arg\min_{p \in S}\, p_x$ \tcp*{minimaler Extrempunkt}
+$B \leftarrow \arg\max_{p \in S}\, p_x$ \tcp*{maximaler Extrempunkt}
+$H \leftarrow \emptyset$\;
+
+\BlankLine
+
+\textsc{FindHull}$(S,\, A,\, B,\, H)$ \tcp*{Punkte links von $A \to B$}
+\textsc{FindHull}$(S,\, B,\, A,\, H)$ \tcp*{Punkte links von $B \to A$}
+
+\BlankLine
+
+\If{$|H| \geq 3$}{
+    $c_x \leftarrow \dfrac{1}{|H|}\displaystyle\sum_{p \in H} p_x$,\quad
+    $c_y \leftarrow \dfrac{1}{|H|}\displaystyle\sum_{p \in H} p_y$\;
+    \BlankLine
+    Sortiere $H$ aufsteigend nach $\operatorname{atan2}(p_y - c_y,\; p_x - c_x)$\;
+}
+
+\Return $H$\;
+
+\BlankLine
+\BlankLine
+
+\SetKwProg{Fn}{Funktion}{ :}{}
+\Fn{\textsc{FindHull}$(P,\; a,\; b,\; H)$}{
+
+    \KwData{Kandidatenmenge $P$, gerichtete Kante $a \to b$, Ergebnismenge $H$}
+
+    \BlankLine
+
+    $L \leftarrow \emptyset$ \tcp*{Punkte strikt links von $a \to b$}
+    $P^* \leftarrow \bot$ \tcp*{weitester-Punkt, zunächst unbestimmt}
+    $d^* \leftarrow 0$\;
+
+    \BlankLine
+
+    \ForEach{$p \in P$}{
+        $v \leftarrow (b_x - a_x)(p_y - a_y) - (b_y - a_y)(p_x - a_x)$\;
+        \If{$v > 0$}{
+            $L \leftarrow L \cup \{p\}$\;
+            \If{$v > d^*$}{
+                $d^* \leftarrow v$\;
+                $P^* \leftarrow p$\;
+            }
+        }
+    }
+
+    \BlankLine
+
+    \If{$P^* = \bot$}{
+        \tcp{Kein Punkt links von $a \to b$: Kante ist Hüllkante, $a$ ist Hüllpunkt}
+        $H \leftarrow H \cup \{a\}$\;
+        \Return\;
+    }
+
+    \BlankLine
+
+    \tcp{$P^*$ ist Hüllpunkt; Punkte in $\triangle(a, P^*, b)$ werden implizit verworfen}
+    \textsc{FindHull}$(L,\; a,\; P^*,\; H)$\;
+    \textsc{FindHull}$(L,\; P^*,\; b,\; H)$\;
+}
+
+\end{algorithm}

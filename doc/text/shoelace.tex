@@ -1,0 +1,43 @@
+\section{Gaußsche Trapezformel}
+\subsection{Problem und Aufgabe}
+Gegeben ist ein einfaches Polygon mit $n$ Eckpunkten $p_0, p_1, \dots, p_{n-1}$, wobei $p_i = (x_i, y_i) \in \mathbb{R}^2$. Gesucht ist der Flächeninhalt $A$ dieses Polygons.
+
+\subsection{Algorithmische Idee}
+Die Gaußsche Trapezformel (auch Shoelace-Formel) berechnet die Fläche eines einfachen Polygons direkt aus seinen Eckpunktkoordinaten, ohne Integration \cite{lee2017shoelace}. Die Grundidee basiert auf dem signierten Flächeninhalt: Jede Kante $p_i \to p_{i+1}$ trägt einen vorzeichenbehafteten Trapezanteil zur Gesamtfläche bei. Positive und negative Anteile heben sich für innere Bereiche auf, sodass am Ende genau die Polygonfläche verbleibt.
+
+\subsection{Funktionsweise}
+Für eine gerichtete Kante von $p_i = (x_i, y_i)$ nach $p_{i+1} = (x_{i+1}, y_{i+1})$ ist der signierte Kreuzproduktterm:
+
+\begin{equation*}
+	c_i = x_i y_{i+1} - x_{i+1} y_i	
+\end{equation*}
+
+
+Dieser Term entspricht der doppelten signierten Fläche des Dreiecks, das vom Ursprung und den beiden Punkten aufgespannt wird. Summiert über alle Kanten ergibt sich die signierte Fläche \cite{braden1986survey}
+\begin{equation*}
+	A_{\text{signed}} = \frac{1}{2} \sum_{i=0}^{n-1} (x_i y_{i+1} - x_{i+1} y_i)
+\end{equation*}
+
+wobei die Indizes modulo $n$ zu verstehen sind, d.\,h.\ $p_n = p_0$. Das Vorzeichen von $A_{\text{signed}}$ kodiert die Umlaufrichtung: positiv für CCW (Counter Clock Wise), negativ für CW (Clock Wise). Der gesuchte Flächeninhalt ist:
+\begin{equation*}
+	A = |A_{\text{signed}}|
+\end{equation*}
+
+Die Formel liefert nur dann das korrekte Ergebnis, wenn das Polygon einfach ist, also keine Selbstschneidungen aufweist, und die Punkte in konsistenter zyklischer Reihenfolge vorliegen.
+
+\subsection{Anwendung auf die konvexe Hülle}
+Da QuickHull die Hüllpunkte nicht zwingend in zyklischer Reihenfolge zurückgibt, ist eine Vorsortierung notwendig. Dazu wird zunächst der Schwerpunkt (Zentroid) der Punktmenge berechnet:
+\begin{equation*}
+	c = \frac{1}{n} \sum_{i=0}^{n-1} p_i
+\end{equation*}
+
+Anschließend werden die Punkte aufsteigend nach ihrem Polarwinkel bezüglich $c$ sortiert:
+\begin{equation*}
+	\theta_i = \operatorname{atan2}(y_i - c_y,\; x_i - c_x)
+\end{equation*}
+
+
+Da die konvexe Hülle sternförmig bezüglich ihres Zentroids ist, erzeugt diese Sortierung garantiert ein einfaches Polygon – die Voraussetzung der Shoelace-Formel ist damit erfüllt.
+
+\subsection{Komplexität}
+Die Berechnung des Zentroids und die Shoelace-Summe sind jeweils $\mathcal{O}(n)$. Die Sortierung nach Polarwinkel benötigt $\mathcal{O}(n \log n)$. Damit dominiert die Sortierung, und die Gesamtkomplexität beträgt $\mathcal{O}(n \log n)$.
