@@ -118,18 +118,20 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - name: Compile and Jar
+      - name: Compile Java
         run: |
           mkdir out
           javac -d out src/*.java
+      - name: Create JAR
+        run: |
           jar --create --file out/app.jar --main-class Main -C out .
+          
       - name: Create Linux App Image
         run: |
           jpackage \
             --input out \
             --name QuickHull \
             --main-jar app.jar \
-            --main-class Main \
             --type app-image \
             --dest dist
       - uses: actions/upload-artifact@v4
