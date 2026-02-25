@@ -145,14 +145,39 @@ jobs:
     needs: [latex, build-windows, build-linux, build-macos]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      # Artefakte herunterladen
+      - name: Download PDFs
+        uses: actions/download-artifact@v4
+        with:
+          name: pdfs
+          path: artifacts/pdfs
+
+      - name: Download Windows Build
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-build
+          path: artifacts/windows
+
+      - name: Download macOS Build
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-build
+          path: artifacts/macos
+
+      - name: Download Linux Build
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-build
+          path: artifacts/linux
+
+      # Release erstellen
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: release-v1
           name: Release v1
           files: |
-            pdfs/*
-            windows-build/*
-            linux-build/*
-            macos-build/*
+            artifacts/pdfs/*
+            artifacts/windows/*
+            artifacts/macos/*
+            artifacts/linux/*
