@@ -1,0 +1,390 @@
+\documentclass[11pt]{beamer}
+\usetheme{Madrid}
+\setbeamertemplate{navigation symbols}{}
+\usecolortheme{default}
+\usepackage[utf8]{inputenc}
+\usepackage[ngerman]{babel}
+\usepackage{amsmath, amssymb}
+\usepackage{algorithm2e}
+\usepackage{graphicx}
+\usepackage{tikz}
+
+
+%%%% TITEL-INFOS %%%%
+\title{QuickHull und Gaußsche Trapezformel}
+\subtitle{GINF Ausarbeitung}
+\author{Oliver Hahn}
+\date{}
+
+\begin{document}
+
+%%%% TITELFOLIE %%%%
+\begin{frame}
+  \titlepage
+\end{frame}
+
+
+%%%% INHALTSVERZEICHNIS %%%%
+\begin{frame}{Übersicht}
+  \tableofcontents
+\end{frame}
+
+%%%% SECTION: QUICKHULL %%%%
+\section{QuickHull}
+
+%%%% FOLIE: PROBLEM %%%%
+\begin{frame}{QuickHull: Problem und Aufgabe}
+  \textbf{Gegeben:} Endliche Punktmenge $S = \{p_1, \dots, p_n\}$ in der Ebene
+  
+  \vspace{0.5cm}
+  
+  \textbf{Gesucht:} Konvexe Hülle $CH(S)$
+  
+  \vspace{0.5cm}
+  
+  \textbf{Anschaulich:}
+  \begin{itemize}
+    \item Kleinstes Polygon, das alle Punkte enthält
+    \item Wie ein Gummiband um die Punkte
+    \item Rand als Polygonzug in zyklischer Reihenfolge
+  \end{itemize}
+  
+  \vspace{0.3cm}
+  
+  \begin{center}
+    \textit{Details in der Ausarbeitung, Abschnitt 1.1}
+  \end{center}
+\end{frame}
+
+%%%% FOLIE: ALGORITHMISCHE IDEE %%%%
+\begin{frame}{QuickHull: Algorithmische Idee}
+  \textbf{Divide-and-Conquer-Ansatz} (ähnlich QuickSort)
+  
+  \vspace{0.5cm}
+  
+  \begin{enumerate}
+    \item Bestimme Punkte mit min/max x-Koordinate: $p_{min}$, $p_{max}$
+    \item Diese liegen garantiert auf der konvexen Hülle
+    \item Gerade durch $p_{min}$ und $p_{max}$ teilt Punktmenge in zwei Halbebenen
+    \item Für jede Halbebene: Finde Punkt mit größtem Abstand zur Geraden
+    \item Rekursive Zerlegung in Teilmengen
+    \item Terminierung: Keine Punkte mehr außerhalb der Strecken
+  \end{enumerate}
+  
+  \vspace{0.3cm}
+  
+  \begin{center}
+    \textit{Details in der Ausarbeitung, Abschnitt 1.2}
+  \end{center}
+\end{frame}
+
+%%%% FOLIE: KREUZPRODUKT %%%%
+\begin{frame}{QuickHull: Kreuzprodukt als Werkzeug}
+  \textbf{Zentrales Werkzeug:} Kreuzprodukt
+  
+  \vspace{0.3cm}
+  
+  \begin{equation*}
+    \text{cross}(a, b, c) = (b_x - a_x)(c_y - a_y) - (b_y - a_y)(c_x - a_x)
+  \end{equation*}
+  
+  \vspace{0.3cm}
+  
+  \textbf{Vorzeichen:}
+  \begin{itemize}
+    \item Positiv: $c$ liegt \textbf{links} von $a \to b$
+    \item Negativ: $c$ liegt \textbf{rechts} von $a \to b$
+    \item Null: Punkte sind kollinear
+  \end{itemize}
+  
+  \vspace{0.3cm}
+  
+  \textbf{Betrag:}
+  \begin{itemize}
+    \item Proportional zur Fläche des Dreiecks $abc$
+    \item Proportional zum Abstand von $c$ zur Geraden $ab$
+  \end{itemize}
+  
+  \vspace{0.3cm}
+  
+  \begin{center}
+    \textit{Details in der Ausarbeitung, Abschnitt 1.3}
+  \end{center}
+\end{frame}
+
+%%%% FOLIE: FUNKTIONSWEISE %%%%
+\begin{frame}{QuickHull: Funktionsweise}
+  Für gerichtete Kante $a \to b$:
+  
+  \vspace{0.3cm}
+  
+  \begin{itemize}
+    \item Betrachte alle Punkte links der Kante:
+    \begin{equation*}
+      L_{ab} = \{p \in S \mid \text{cross}(a,b,p) > 0\}
+    \end{equation*}
+    
+    \item Falls $L_{ab} = \emptyset$: Kante ist Teil der Hülle
+    
+    \item Sonst: Wähle Punkt mit maximalem Abstand:
+    \begin{equation*}
+      P = \operatorname*{arg\,max}_{p \in L_{ab}} \text{cross}(a,b,p)
+    \end{equation*}
+    
+    \item $P$ ist Hüllpunkt
+    
+    \item Rekursion auf $L_{aP}$ und $L_{Pb}$
+  \end{itemize}
+  
+  \vspace{0.3cm}
+  
+  \begin{center}
+    \textit{Details und Beweis in der Ausarbeitung, Abschnitt 1.3}
+  \end{center}
+\end{frame}
+
+%%%% FOLIE: KOMPLEXITÄT %%%%
+\begin{frame}{QuickHull: Komplexität}
+  \textbf{Laufzeit:}
+  
+  \vspace{0.5cm}
+  
+  \begin{itemize}
+    \item \textbf{Durchschnitt:} $\mathcal{O}(n \log n)$
+    \vspace{0.3cm}
+    \item \textbf{Worst Case:} $\mathcal{O}(n^2)$
+    \begin{itemize}
+      \item Bei speziellen Punktverteilungen
+      \item Wenn in jedem Schritt nur ein Punkt eliminiert wird
+    \end{itemize}
+  \end{itemize}
+  
+  \vspace{0.5cm}
+  
+  \textbf{Eigenschaften:}
+  \begin{itemize}
+    \item Terminierung garantiert
+    \item Jeder Rekursionsschritt identifiziert mindestens einen Hüllpunkt
+    \item Innere Punkte werden systematisch eliminiert
+  \end{itemize}
+  
+  \vspace{0.3cm}
+  
+  \begin{center}
+    \textit{Details in der Ausarbeitung, Abschnitt 1.3}
+  \end{center}
+\end{frame}
+
+%%%% SECTION: GAUSS TRAPEZFORMEL %%%%
+\section{Gaußsche Trapezformel}
+
+%%%% FOLIE: PROBLEM TRAPEZ %%%%
+\begin{frame}{Gaußsche Trapezformel: Problem}
+  \textbf{Gegeben:} Einfaches Polygon mit $n$ Eckpunkten
+  \begin{equation*}
+    p_0, p_1, \dots, p_{n-1}, \quad p_i = (x_i, y_i) \in \mathbb{R}^2
+  \end{equation*}
+  
+  \vspace{0.5cm}
+  
+  \textbf{Gesucht:} Flächeninhalt $A$ des Polygons
+  
+  \vspace{0.5cm}
+  
+  \textbf{Voraussetzung:}
+  \begin{itemize}
+    \item Polygon ist einfach (keine Selbstschneidungen)
+    \item Punkte in konsistenter zyklischer Reihenfolge
+  \end{itemize}
+  
+  \vspace{0.3cm}
+  
+  \begin{center}
+    \textit{Details in der Ausarbeitung, Abschnitt 2.1}
+  \end{center}
+\end{frame}
+
+%%%% FOLIE: FORMEL %%%%
+\begin{frame}{Gaußsche Trapezformel: Die Formel}
+  \textbf{Auch bekannt als:} Shoelace-Formel
+  
+  \vspace{0.5cm}
+  
+  \textbf{Signierte Fläche:}
+  \begin{equation*}
+    A_{\text{signed}} = \frac{1}{2} \sum_{i=0}^{n-1} (x_i y_{i+1} - x_{i+1} y_i)
+  \end{equation*}
+  
+  wobei $p_n = p_0$ (zyklisch)
+  
+  \vspace{0.5cm}
+  
+  \textbf{Flächeninhalt:}
+  \begin{equation*}
+    A = |A_{\text{signed}}|
+  \end{equation*}
+  
+  \vspace{0.5cm}
+  
+  \textbf{Vorzeichen:}
+  \begin{itemize}
+    \item Positiv: Counter-Clockwise (CCW)
+    \item Negativ: Clockwise (CW)
+  \end{itemize}
+  
+  \vspace{0.3cm}
+  
+  \begin{center}
+    \textit{Details in der Ausarbeitung, Abschnitt 2.2--2.3}
+  \end{center}
+\end{frame}
+
+%%%% FOLIE: FUNKTIONSWEISE TRAPEZ %%%%
+\begin{frame}{Gaußsche Trapezformel: Funktionsweise}
+  \textbf{Grundidee:}
+  
+  \vspace{0.3cm}
+  
+  \begin{itemize}
+    \item Jede Kante $p_i \to p_{i+1}$ trägt einen vorzeichenbehafteten Trapezanteil bei
+    \item Kreuzproduktterm für eine Kante:
+    \begin{equation*}
+      c_i = x_i y_{i+1} - x_{i+1} y_i
+    \end{equation*}
+    
+    \item Entspricht doppelter signierter Fläche des Dreiecks vom Ursprung
+    
+    \item Positive und negative Anteile heben sich für innere Bereiche auf
+    
+    \item Am Ende verbleibt genau die Polygonfläche
+  \end{itemize}
+  
+  \vspace{0.5cm}
+  
+  \textbf{Keine Integration notwendig!}
+  
+  \vspace{0.3cm}
+  
+  \begin{center}
+    \textit{Details in der Ausarbeitung, Abschnitt 2.3}
+  \end{center}
+\end{frame}
+
+%%%% FOLIE: ANWENDUNG AUF HULL %%%%
+\begin{frame}{Anwendung auf die konvexe Hülle}
+  \textbf{Problem:} QuickHull liefert Punkte nicht in zyklischer Reihenfolge
+  
+  \vspace{0.5cm}
+  
+  \textbf{Lösung:} Sortierung nach Polarwinkel
+  
+  \vspace{0.3cm}
+  
+  \begin{enumerate}
+    \item Berechne Schwerpunkt (Zentroid):
+    \begin{equation*}
+      c = \frac{1}{n} \sum_{i=0}^{n-1} p_i
+    \end{equation*}
+    
+    \item Sortiere Punkte nach Polarwinkel bezüglich $c$:
+    \begin{equation*}
+      \theta_i = \operatorname{atan2}(y_i - c_y, x_i - c_x)
+    \end{equation*}
+    
+    \item Konvexe Hülle ist sternförmig $\Rightarrow$ einfaches Polygon garantiert
+  \end{enumerate}
+  
+  \vspace{0.3cm}
+  
+  \begin{center}
+    \textit{Details in der Ausarbeitung, Abschnitt 2.4}
+  \end{center}
+\end{frame}
+
+%%%% FOLIE: KOMPLEXITÄT TRAPEZ %%%%
+\begin{frame}{Gaußsche Trapezformel: Komplexität}
+  \textbf{Zeitkomplexität:}
+  
+  \vspace{0.5cm}
+  
+  \begin{itemize}
+    \item Berechnung des Zentroids: $\mathcal{O}(n)$
+    \vspace{0.3cm}
+    \item Shoelace-Summe: $\mathcal{O}(n)$
+    \vspace{0.3cm}
+    \item Sortierung nach Polarwinkel: $\mathcal{O}(n \log n)$
+  \end{itemize}
+  
+  \vspace{0.5cm}
+  
+  \textbf{Gesamtkomplexität:} $\mathcal{O}(n \log n)$
+  
+  \vspace{0.3cm}
+  
+  (Sortierung dominiert)
+  
+  \vspace{0.5cm}
+  
+  \begin{center}
+    \textit{Details in der Ausarbeitung, Abschnitt 2.5}
+  \end{center}
+\end{frame}
+
+%%%% SECTION: ZUSAMMENFASSUNG %%%%
+\section{Zusammenfassung}
+
+%%%% FOLIE: ZUSAMMENFASSUNG %%%%
+\begin{frame}{Zusammenfassung}
+  \textbf{QuickHull:}
+  \begin{itemize}
+    \item Divide-and-Conquer-Algorithmus für konvexe Hülle
+    \item Kreuzprodukt zur Orientierung und Abstandsberechnung
+    \item Durchschnittliche Laufzeit: $\mathcal{O}(n \log n)$
+  \end{itemize}
+  
+  \vspace{0.5cm}
+  
+  \textbf{Gaußsche Trapezformel:}
+  \begin{itemize}
+    \item Effiziente Flächenberechnung für einfache Polygone
+    \item Direkte Berechnung aus Koordinaten
+    \item Laufzeit: $\mathcal{O}(n \log n)$ (mit Sortierung)
+  \end{itemize}
+  
+  \vspace{0.5cm}
+  
+  \textbf{Kombination:}
+  \begin{itemize}
+    \item QuickHull berechnet konvexe Hülle
+    \item Trapezformel berechnet deren Fläche
+  \end{itemize}
+\end{frame}
+
+%%%% FOLIE: IMPLEMENTATION %%%%
+\begin{frame}{Implementation}
+  \begin{center}
+    \Large
+    \textbf{Implementation verfügbar}
+    
+    \vspace{1cm}
+    
+    \normalsize
+    Eine vollständige Implementation beider Algorithmen wurde erstellt.
+    
+    \vspace{0.5cm}
+    
+    Die Implementation umfasst:
+    \begin{itemize}
+      \item QuickHull-Algorithmus
+      \item Gaußsche Trapezformel
+      \item Visualisierung der Ergebnisse
+      \item Testfälle und Beispiele
+    \end{itemize}
+    
+    \vspace{1cm}
+    
+    \textit{Siehe separate Implementationsdateien}
+  \end{center}
+\end{frame}
+
+\end{document}

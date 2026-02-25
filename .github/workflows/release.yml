@@ -1,0 +1,182 @@
+name: Build and Release on Merge to Main
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+
+  # ------------------------------------
+  # LaTeX Build
+  # ------------------------------------
+  latex:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile Ausarbeitung
+        uses: xu-cheng/latex-action@v2
+        with:
+          root_file: main.tex
+          working_directory: doc/text
+
+      - name: Compile Präsentation
+        uses: xu-cheng/latex-action@v2
+        with:
+          root_file: slides.tex
+          working_directory: doc/slides
+
+      - name: Upload PDFs
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdfs
+          path: |
+            doc/text/main.pdf
+            doc/slides/slides.pdf
+
+
+  # ------------------------------------
+  # Windows Build
+  # ------------------------------------
+  build-windows:
+    if: github.event.pull_request.merged == true
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Compile Java
+        run: |
+          mkdir out
+          javac -d out src/*.java
+
+      - name: Create JAR
+        run: |
+          jar --create --file app.jar --main-class Main -C out .
+
+      - name: Create Windows EXE
+        run: |
+          jpackage ^
+            --input . ^
+            --name QuickHull ^
+            --main-jar app.jar ^
+            --type exe ^
+            --dest dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: dist/*
+
+
+  # ------------------------------------
+  # 3️⃣ Linux Build
+  # ------------------------------------
+  build-linux:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Compile Java
+        run: |
+          mkdir out
+          javac -d out src/*.java
+
+      - name: Create JAR
+        run: |
+          jar --create --file app.jar --main-class Main -C out .
+
+      - name: Create Linux App Image
+        run: |
+          jpackage \
+            --input . \
+            --name QuickHull \
+            --main-jar app.jar \
+            --type app-image \
+            --dest dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-build
+          path: dist/*
+
+
+  # ------------------------------------
+  # macOS Build
+  # ------------------------------------
+  build-macos:
+    if: github.event.pull_request.merged == true
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Compile Java
+        run: |
+          mkdir out
+          javac -d out src/*.java
+
+      - name: Create JAR
+        run: |
+          jar --create --file app.jar --main-class Main -C out .
+
+      - name: Create macOS App
+        run: |
+          jpackage \
+            --input . \
+            --name QuickHull \
+            --main-jar app.jar \
+            --type app-image \
+            --dest dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-build
+          path: dist/*
+
+
+  # ------------------------------------
+  # Release erstellen
+  # ------------------------------------
+  release:
+    if: github.event.pull_request.merged == true
+    needs: [latex, build-windows, build-linux, build-macos]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/download-artifact@v4
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: release-${{ github.run_number }}
+          name: Release ${{ github.run_number }}
+          files: |
+            pdfs/*
+            windows-build/*
+            linux-build/*
+            macos-build/*
