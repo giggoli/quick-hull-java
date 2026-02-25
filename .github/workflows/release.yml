@@ -19,12 +19,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Compile Ausarbeitung
+      - name: Compile LaTeX
         uses: xu-cheng/latex-action@v2
         with:
           root_file: main.tex
           working_directory: doc/text
-      - name: Compile Präsentation
+      - name: Compile Slides
         uses: xu-cheng/latex-action@v2
         with:
           root_file: slides.tex
@@ -38,7 +38,7 @@ jobs:
             doc/slides/slides.pdf
 
   # ------------------------------------
-  # Windows Build (EXE)
+  # Windows Build (Standalone Folder)
   # ------------------------------------
   build-windows:
     if: github.event.pull_request.merged == true
@@ -49,14 +49,13 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - name: Compile Java
+      - name: Compile and Jar
+        shell: cmd
         run: |
           mkdir out
           javac -d out src/*.java
-      - name: Create JAR
-        run: |
           jar --create --file out/app.jar --main-class Main -C out .
-      - name: Create Windows EXE
+      - name: Create Windows Standalone
         shell: cmd
         run: |
           jpackage ^
@@ -64,65 +63,34 @@ jobs:
             --name QuickHull ^
             --main-jar app.jar ^
             --main-class Main ^
-            --type exe ^
+            --type app-image ^
             --win-console ^
             --dest dist
+      - name: Zip Windows Build
+        shell: pwsh
+        run: Compress-Archive -Path dist/QuickHull -DestinationPath dist/QuickHull-Windows.zip
       - uses: actions/upload-artifact@v4
         with:
           name: windows-build
-          path: dist/*
+          path: dist/QuickHull-Windows.zip
 
   # ------------------------------------
-  # Linux Build (AppImage)
-  # ------------------------------------
-  build-linux:
-    if: github.event.pull_request.merged == true
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 21
-      - name: Compile Java
-        run: |
-          mkdir out
-          javac -d out src/*.java
-      - name: Create JAR
-        run: |
-          jar --create --file out/app.jar --main-class Main -C out .
-      - name: Create Linux App Image
-        run: |
-          jpackage \
-            --input out \
-            --name QuickHull \
-            --main-jar app.jar \
-            --main-class Main \
-            --type app-image \
-            --dest dist
-      - uses: actions/upload-artifact@v4
-        with:
-          name: linux-build
-          path: dist/*
-
-  # ------------------------------------
-  # macOS Build (Intel Mac Fix)
+  # macOS Build (Intel Mac)
   # ------------------------------------
   build-macos:
     if: github.event.pull_request.merged == true
-    runs-on: macos-12
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
-      - name: Compile Java
+          architecture: x64
+      - name: Compile and Jar
         run: |
           mkdir out
           javac -d out src/*.java
-      - name: Create JAR
-        run: |
           jar --create --file out/app.jar --main-class Main -C out .
       - name: Create macOS DMG
         run: |
@@ -139,7 +107,38 @@ jobs:
           path: dist/*.dmg
 
   # ------------------------------------
-  # Release erstellen
+  # Linux Build
+  # ------------------------------------
+  build-linux:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Compile and Jar
+        run: |
+          mkdir out
+          javac -d out src/*.java
+          jar --create --file out/app.jar --main-class Main -C out .
+      - name: Create Linux App Image
+        run: |
+          jpackage \
+            --input out \
+            --name QuickHull \
+            --main-jar app.jar \
+            --main-class Main \
+            --type app-image \
+            --dest dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-build
+          path: dist/*
+
+  # ------------------------------------
+  # Release
   # ------------------------------------
   release:
     if: github.event.pull_request.merged == true
@@ -147,11 +146,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
-      - name: Create GitHub Release
+      - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: release-v1.0
-          name: Release v1.0
+          tag_name: release-v1
+          name: Release v1
           files: |
             pdfs/*
             windows-build/*
